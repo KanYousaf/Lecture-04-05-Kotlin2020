@@ -1,5 +1,7 @@
 package com.example.lecture03
 
+import android.app.Activity
+import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.Menu
@@ -24,10 +26,16 @@ class MainActivity : AppCompatActivity() {
     private lateinit var rateTmntCharacter: RatingBar
     private lateinit var rankAdapter: ArrayAdapter<String>
 
+    //request code for starting this activity
+    private var REQ_CODE : Int = 1234
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+        userNameEditText = findViewById(R.id.user_name_editText)
+        passwordEditText = findViewById(R.id.password_edit_text)
+
         //make radio group and tmnt image view invisible as soon as activity loads
         tmntRadioGroup = findViewById(R.id.tmnt_radio_group)
         displayCharacterTMNT = findViewById(R.id.display_character_imageView)
@@ -45,9 +53,6 @@ class MainActivity : AppCompatActivity() {
     }
 
     fun submit_button(view: View) {
-        userNameEditText = findViewById(R.id.user_name_editText)
-        passwordEditText = findViewById(R.id.password_edit_text)
-
         //check if user name or password is not entered then prompts toast message
         if (userNameEditText.text.toString().trim().isEmpty() ||
             passwordEditText.text.toString().isEmpty()
@@ -62,6 +67,7 @@ class MainActivity : AppCompatActivity() {
             displayCharacterTMNT.visibility = View.VISIBLE
             CharacterName = donRadioButton.text.toString()
             displayMessage()
+
         }
     }
 
@@ -98,20 +104,20 @@ class MainActivity : AppCompatActivity() {
         super.onCreateOptionsMenu(menu)
         menuInflater.inflate(R.menu.main_menu, menu)
 
-        //convert search menu item as search view
-        val searchItem = menu?.findItem(R.id.search)
-        val searchView = searchItem?.actionView as SearchView
-
-        searchView.queryHint = getString(R.string.search)
-        searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
-            override fun onQueryTextSubmit(query: String?): Boolean {
-                return false
-            }
-
-            override fun onQueryTextChange(newText: String?): Boolean {
-                return true
-            }
-        })
+//        //convert search menu item as search view
+//        val searchItem = menu?.findItem(R.id.search)
+//        val searchView = searchItem?.actionView as SearchView
+//
+//        searchView.queryHint = getString(R.string.search)
+//        searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
+//            override fun onQueryTextSubmit(query: String?): Boolean {
+//                return false
+//            }
+//
+//            override fun onQueryTextChange(newText: String?): Boolean {
+//                return true
+//            }
+//        })
         return true
     }
 
@@ -180,6 +186,33 @@ class MainActivity : AppCompatActivity() {
                 }
             }
 
+        }
+    }
+
+
+    fun nextButtonPressed(view: View){
+        intentToSecondActivity()
+    }
+
+    fun intentToSecondActivity() {
+        val intent = Intent(this, SecondActivity::class.java)
+        if (userNameEditText.text.toString().isEmpty()) {
+            Toast.makeText(this, "Enter Name", Toast.LENGTH_SHORT).show()
+        } else {
+            intent.putExtra("user_name_passed", userNameEditText.text.toString())
+            intent.putExtra("random_key", (0..100).random())
+            //start simple activity without waiting for returning back to this activity
+//            startActivity(intent)
+            startActivityForResult(intent, REQ_CODE)
+        }
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+
+        if(requestCode == REQ_CODE && resultCode == Activity.RESULT_OK){
+            val fetched_num = data!!.getIntExtra("received_random_num",0)
+            Toast.makeText(this, " Random Number was : ${fetched_num}", Toast.LENGTH_SHORT).show()
         }
     }
 }
